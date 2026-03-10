@@ -82,12 +82,17 @@
   </footer>
 
   <script type="module">
-    import { requireAuth }  from './js/auth.js';
-    import { getAllGames }  from './js/db.js';
+    import { requireAuth }   from './js/auth.js';
+    import { getAllGames }   from './js/db.js';
     import { renderGameCard } from './js/ui.js';
+    import { filterAndSort, debounce } from './js/browse.js';
 
     requireAuth(async user => {
-      const grid = document.getElementById('game-grid');
+      const grid            = document.getElementById('game-grid');
+      const searchInput     = document.getElementById('search-bar');
+      const genreSelect     = document.getElementById('genre-filter');
+      const platformSelect  = document.getElementById('platform-filter');
+      const sortSelect      = document.getElementById('sort-filter');
 
       // Show spinner while Firestore fetch is in progress
       grid.innerHTML = `
@@ -95,20 +100,61 @@
           <div class="w-8 h-8 border-2 border-cp-green border-t-transparent rounded-full animate-spin"></div>
         </div>`;
 
+      let allGames = [];
       try {
-        const games = await getAllGames();
-        grid.innerHTML = '';
-
-        if (games.length === 0) {
-          grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-12">No games found.</p>';
-          return;
-        }
-
-        games.forEach(game => grid.appendChild(renderGameCard(game)));
+        allGames = await getAllGames();
       } catch (err) {
         console.error('Failed to load games:', err);
         grid.innerHTML = '<p class="col-span-full text-center text-red-400 py-12">Failed to load games. Please try refreshing.</p>';
+        return;
       }
+
+      // Populate genre dropdown from unique genres, sorted A-Z
+      const genres = [...new Set(allGames.map(g => g.genre))].sort();
+      genres.forEach(genre => {
+        const opt = document.createElement('option');
+        opt.value = genre;
+        opt.textContent = genre;
+        genreSelect.appendChild(opt);
+      });
+
+      // Populate platform dropdown by splitting each game's platform string on " / "
+      // e.g. "PC / PS5 / Xbox" → ["PC", "PS5", "Xbox"]
+      const platforms = [...new Set(allGames.flatMap(g => g.platform.split(' / ')))].sort();
+      platforms.forEach(platform => {
+        const opt = document.createElement('option');
+        opt.value = platform;
+        opt.textContent = platform;
+        platformSelect.appendChild(opt);
+      });
+
+      // Re-filter and re-render the grid based on current control values
+      function renderGrid() {
+        const filtered = filterAndSort(allGames, {
+          query:    searchInput.value,
+          genre:    genreSelect.value,
+          platform: platformSelect.value,
+          sort:     sortSelect.value,
+        });
+
+        grid.innerHTML = '';
+        if (filtered.length === 0) {
+          grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-12">No games match your search.</p>';
+          return;
+        }
+        filtered.forEach(game => grid.appendChild(renderGameCard(game)));
+      }
+
+      // Initial render — shows all games sorted A-Z
+      renderGrid();
+
+      // Search is debounced so the grid doesn't re-render on every keystroke
+      searchInput.addEventListener('input', debounce(renderGrid, 300));
+
+      // Selects fire immediately — the user already made a deliberate choice
+      genreSelect.addEventListener('change', renderGrid);
+      platformSelect.addEventListener('change', renderGrid);
+      sortSelect.addEventListener('change', renderGrid);
     });
   </script>
 
