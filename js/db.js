@@ -9,6 +9,7 @@ import {
   getDocs,
   getDoc,
   setDoc,
+  updateDoc,
   deleteDoc,
   serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
@@ -85,6 +86,24 @@ export async function getGameStatus(userId, gameId) {
 export async function getUserProfile(userId) {
   const snap = await getDoc(doc(db, 'users', userId));
   return snap.exists() ? snap.data() : null;
+}
+
+// Updates only the supplied fields on the user's Firestore profile document.
+// Using updateDoc (not setDoc) so unrelated fields like createdAt are untouched.
+export async function updateUserProfile(userId, data) {
+  await setDoc(doc(db, 'users', userId), data, { merge: true });
+}
+
+// Returns the number of games in the user's favorites subcollection.
+export async function getFavoritesCount(userId) {
+  const snap = await getDocs(collection(db, 'users', userId, 'favorites'));
+  return snap.size;
+}
+
+// Returns the number of games in the user's library subcollection.
+export async function getLibraryCount(userId) {
+  const snap = await getDocs(collection(db, 'users', userId, 'library'));
+  return snap.size;
 }
 
 // ── Reviews ───────────────────────────────────────────────────────────────
