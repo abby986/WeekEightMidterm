@@ -82,9 +82,33 @@
   </footer>
 
   <script type="module">
-    import { requireAuth } from './js/auth.js';
-    requireAuth(user => {
-      // browse.js initialization will go here in Step 5
+    import { requireAuth }  from './js/auth.js';
+    import { getAllGames }  from './js/db.js';
+    import { renderGameCard } from './js/ui.js';
+
+    requireAuth(async user => {
+      const grid = document.getElementById('game-grid');
+
+      // Show spinner while Firestore fetch is in progress
+      grid.innerHTML = `
+        <div class="col-span-full flex justify-center py-12">
+          <div class="w-8 h-8 border-2 border-cp-green border-t-transparent rounded-full animate-spin"></div>
+        </div>`;
+
+      try {
+        const games = await getAllGames();
+        grid.innerHTML = '';
+
+        if (games.length === 0) {
+          grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-12">No games found.</p>';
+          return;
+        }
+
+        games.forEach(game => grid.appendChild(renderGameCard(game)));
+      } catch (err) {
+        console.error('Failed to load games:', err);
+        grid.innerHTML = '<p class="col-span-full text-center text-red-400 py-12">Failed to load games. Please try refreshing.</p>';
+      }
     });
   </script>
 
