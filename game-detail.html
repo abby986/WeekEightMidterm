@@ -44,10 +44,11 @@
     </div>
   </nav>
 
-  <!-- Main -->
+  <!-- Main — content injected by script below -->
   <main class="flex-1 px-8 py-8 max-w-4xl mx-auto w-full">
-    <!-- Rendered by game-detail.js -->
-    <p class="text-gray-500">Loading game...</p>
+    <div class="flex justify-center py-12">
+      <div class="w-8 h-8 border-2 border-cp-green border-t-transparent rounded-full animate-spin"></div>
+    </div>
   </main>
 
   <!-- Footer -->
@@ -57,8 +58,111 @@
 
   <script type="module">
     import { requireAuth } from './js/auth.js';
-    requireAuth(user => {
-      // game-detail.js initialization will go here in Step 7
+    import { getGame, toggleFavorite, isFavorited, setGameStatus, getGameStatus } from './js/db.js';
+
+    requireAuth(async user => {
+      const main   = document.querySelector('main');
+      const params = new URLSearchParams(window.location.search);
+      const gameId = params.get('id');
+
+      // No ID in URL — send them back to browse
+      if (!gameId) {
+        window.location.href = 'browse.html';
+        return;
+      }
+
+      // Fetch game data and the user's existing favorite/status in parallel
+      let game, favorited, status;
+      try {
+        [game, favorited, status] = await Promise.all([
+          getGame(gameId),
+          isFavorited(user.uid, gameId),
+          getGameStatus(user.uid, gameId)
+        ]);
+      } catch (err) {
+        console.error(err);
+        main.innerHTML = '<p class="text-red-400">Failed to load game. Please try refreshing.</p>';
+        return;
+      }
+
+      if (!game) {
+        main.innerHTML = '<p class="text-red-400">Game not found.</p>';
+        return;
+      }
+
+      // Render the full detail UI
+      main.innerHTML = `
+        <a href="browse.html" class="text-sm text-gray-500 hover:text-cp-green transition-colors mb-6 inline-block">← Back to Browse</a>
+
+        <div class="flex flex-col sm:flex-row gap-6 mb-8">
+          <img
+            src="${game.coverImage}"
+            alt="${game.title}"
+            class="w-full sm:w-72 rounded-xl border border-cp-border object-cover object-top"
+            onerror="this.style.display='none'"
+          />
+          <div class="flex-1">
+            <h1 class="text-3xl font-extrabold mb-3">${game.title}</h1>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span class="text-xs bg-cp-surface border border-cp-border text-cp-green px-2.5 py-1 rounded-full">${game.genre}</span>
+              <span class="text-xs bg-cp-surface border border-cp-border text-gray-400 px-2.5 py-1 rounded-full">${game.platform}</span>
+              <span class="text-xs bg-cp-surface border border-cp-border text-gray-400 px-2.5 py-1 rounded-full">${game.releaseYear}</span>
+            </div>
+            <p class="text-gray-400 text-sm leading-relaxed mb-6">${game.description}</p>
+
+            <div class="flex flex-wrap gap-3">
+              <button type="button" id="fav-btn"
+                class="cursor-pointer px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${favorited
+                  ? 'bg-cp-green-dark border-cp-green-dark text-white'
+                  : 'border-cp-border text-gray-400 hover:border-cp-green hover:text-cp-green'}">
+                ${favorited ? '♥ Favorited' : '♡ Add to Favorites'}
+              </button>
+              <select id="status-select"
+                class="cursor-pointer bg-cp-surface border border-cp-border text-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-cp-green focus:ring-1 focus:ring-cp-green transition-colors">
+                <option value="">Set Status</option>
+                <option value="not_started" ${status === 'not_started' ? 'selected' : ''}>Not Started</option>
+                <option value="playing"     ${status === 'playing'     ? 'selected' : ''}>Playing</option>
+                <option value="played"      ${status === 'played'      ? 'selected' : ''}>Played</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reviews — added in Step 8 -->
+        <div class="border-t border-cp-border pt-8">
+          <h2 class="text-lg font-bold mb-4">Reviews</h2>
+          <p class="text-gray-500 text-sm">Reviews coming soon.</p>
+        </div>
+      `;
+
+      // Favorite button toggle
+      const favBtn = document.getElementById('fav-btn');
+      favBtn.addEventListener('click', async () => {
+        favBtn.disabled = true;
+        try {
+          favorited = await toggleFavorite(user.uid, gameId, game);
+          favBtn.textContent = favorited ? '♥ Favorited' : '♡ Add to Favorites';
+          favBtn.className = `cursor-pointer px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${favorited
+            ? 'bg-cp-green-dark border-cp-green-dark text-white'
+            : 'border-cp-border text-gray-400 hover:border-cp-green hover:text-cp-green'}`;
+        } catch (err) {
+          console.error('Failed to toggle favorite:', err);
+        } finally {
+          favBtn.disabled = false;
+        }
+      });
+
+      // Status dropdown
+      const statusSelect = document.getElementById('status-select');
+      statusSelect.addEventListener('change', async () => {
+        const newStatus = statusSelect.value;
+        if (!newStatus) return;
+        try {
+          await setGameStatus(user.uid, gameId, newStatus, game);
+        } catch (err) {
+          console.error('Failed to set status:', err);
+        }
+      });
     });
   </script>
 
