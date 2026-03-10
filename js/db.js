@@ -43,9 +43,9 @@ export async function toggleFavorite(userId, gameId, gameData) {
   }
   await setDoc(ref, {
     gameId,
-    title:      gameData.title,
+    title: gameData.title,
     coverImage: gameData.coverImage,
-    addedAt:    serverTimestamp()
+    addedAt: serverTimestamp()
   });
   return true;
 }
@@ -65,10 +65,10 @@ export async function isFavorited(userId, gameId) {
 export async function setGameStatus(userId, gameId, status, gameData) {
   await setDoc(doc(db, 'users', userId, 'library', gameId), {
     gameId,
-    title:      gameData.title,
+    title: gameData.title,
     coverImage: gameData.coverImage,
     status,
-    updatedAt:  serverTimestamp()
+    updatedAt: serverTimestamp()
   });
 }
 
@@ -76,4 +76,32 @@ export async function setGameStatus(userId, gameId, status, gameData) {
 export async function getGameStatus(userId, gameId) {
   const snap = await getDoc(doc(db, 'users', userId, 'library', gameId));
   return snap.exists() ? snap.data().status : null;
+}
+
+// ── User profile ───────────────────────────────────────────────────────────
+
+// Fetches a user's Firestore profile document.
+// Used to get displayName, which is stored in Firestore — not on the Auth user.
+export async function getUserProfile(userId) {
+  const snap = await getDoc(doc(db, 'users', userId));
+  return snap.exists() ? snap.data() : null;
+}
+
+// ── Reviews ───────────────────────────────────────────────────────────────
+
+// Fetches all reviews for a game.
+export async function getReviews(gameId) {
+  const snapshot = await getDocs(collection(db, 'games', gameId, 'reviews'));
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// Submits (or overwrites) the current user's review for a game.
+// Using userId as the document ID enforces one review per user per game.
+export async function submitReview(userId, gameId, { rating, text, displayName }) {
+  await setDoc(doc(db, 'games', gameId, 'reviews', userId), {
+    rating,
+    text,
+    displayName,
+    timestamp: serverTimestamp()
+  });
 }

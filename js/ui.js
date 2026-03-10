@@ -1,6 +1,32 @@
 // js/ui.js
 // Shared UI helpers used across multiple pages.
 
+// ── Avatar ─────────────────────────────────────────────────────────────────
+
+function getInitials(name) {
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function getAvatarColor(name) {
+  const colors = ['#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#f39c12', '#1abc9c'];
+  return colors[name.charCodeAt(0) % colors.length];
+}
+
+// Builds and returns a circular initials avatar element.
+export function renderAvatar(displayName, size = 40) {
+  displayName = displayName || '?';
+  const div = document.createElement('div');
+  div.style.cssText = `
+    width:${size}px; height:${size}px; border-radius:50%;
+    background:${getAvatarColor(displayName)};
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:bold; font-size:${Math.round(size * 0.4)}px;
+    flex-shrink:0;
+  `;
+  div.textContent = getInitials(displayName);
+  return div;
+}
+
 // ── Game Cards ─────────────────────────────────────────────────────────────
 
 // Builds and returns a game card <a> element.
