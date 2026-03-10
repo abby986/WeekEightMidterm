@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Browse — CheckPoint Game Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'cp-bg':          '#0a0a0f',
+            'cp-surface':     '#111118',
+            'cp-border':      '#1e1e2e',
+            'cp-green':       '#89f881',
+            'cp-green-dark':  '#3a8d34',
+            'cp-green-hover': '#1e551a',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="css/custom.css" />
+</head>
+
+<body class="bg-cp-bg text-gray-200 min-h-screen flex flex-col font-sans">
+
+  <!-- Navbar -->
+  <nav class="w-full px-8 py-4 border-b border-cp-border flex items-center gap-4 md:gap-6">
+    <a href="index.html" class="text-xl font-bold tracking-wide text-cp-green shrink-0 hover:opacity-80 transition-opacity">CheckPoint</a>
+    <div class="hidden md:flex items-center gap-5 text-sm shrink-0">
+      <a href="browse.html" class="text-cp-green font-medium">Browse</a>
+      <a href="favorites.html" class="hover:text-cp-green transition-colors">Favorites</a>
+      <a href="library.html" class="hover:text-cp-green transition-colors">Library</a>
+      <a href="profile.html" class="hover:text-cp-green transition-colors">Profile</a>
+    </div>
+    <input
+      id="search-bar"
+      type="text"
+      placeholder="Search games..."
+      class="flex-1 bg-cp-surface text-gray-200 placeholder-gray-500 px-4 py-1.5 rounded-lg text-sm outline-none border border-cp-border focus:border-cp-green focus:ring-1 focus:ring-cp-green transition-colors"
+    />
+    <div class="flex items-center gap-3 shrink-0">
+      <button type="button" id="dark-mode-toggle" class="cursor-pointer hover:text-cp-green transition-colors" aria-label="Toggle dark mode">🌙</button>
+      <div id="nav-avatar"></div>
+      <button type="button" id="logout-btn" class="cursor-pointer text-sm bg-cp-green-dark hover:bg-cp-green-hover text-white px-3 py-1.5 rounded-lg transition-colors">Logout</button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="flex-1 px-8 py-8 max-w-7xl mx-auto w-full">
+    <h1 class="text-2xl font-bold mb-6">Browse Games</h1>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-3 mb-6">
+      <select id="genre-filter" class="bg-cp-surface border border-cp-border text-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-cp-green focus:ring-1 focus:ring-cp-green transition-colors">
+        <option value="">All Genres</option>
+      </select>
+      <select id="platform-filter" class="bg-cp-surface border border-cp-border text-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-cp-green focus:ring-1 focus:ring-cp-green transition-colors">
+        <option value="">All Platforms</option>
+      </select>
+      <select id="sort-filter" class="bg-cp-surface border border-cp-border text-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-cp-green focus:ring-1 focus:ring-cp-green transition-colors">
+        <option value="az">A–Z</option>
+        <option value="za">Z–A</option>
+        <option value="rating">Top Rated</option>
+        <option value="newest">Newest</option>
+      </select>
+    </div>
+
+    <!-- Game Grid -->
+    <div id="game-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <!-- Cards rendered by browse.js -->
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full px-8 py-4 text-center text-sm text-gray-600 border-t border-cp-border">
+    &copy; 2026 CheckPoint Game Hub
+  </footer>
+
+  <script type="module">
+    import { requireAuth } from './js/auth.js';
+    requireAuth(user => {
+      // browse.js initialization will go here in Step 5
+    });
+  </script>
+
+</body>
+
+</html>

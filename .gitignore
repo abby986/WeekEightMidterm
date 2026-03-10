@@ -1,0 +1,13 @@
+node_modules/
+
+# Firebase config contains real API keys — never commit this file.
+# Copy js/firebase-config.example.js, rename it to firebase-config.js,
+# and fill in your own values from Firebase Console → Project Settings.
+js/firebase-config.js
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Exported conversation transcripts
+*.txt
