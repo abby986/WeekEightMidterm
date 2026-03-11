@@ -3,8 +3,38 @@
    star rating pickers, custom scrollbars, animation keyframes, etc.
 */
 
+/* ── Theme Variables ─────────────────────────────────────────────────────── */
+/* Default = dark. The Tailwind config in each page references these vars so  */
+/* all bg-cp-bg / bg-cp-surface / border-cp-border classes automatically swap */
+/* when darkmode.js toggles the .dark class on <html>.                        */
+
+:root {
+  --cp-bg: #0a0a0f;
+  --cp-surface: #111118;
+  --cp-border: #1e1e2e;
+  --cp-green: #89f881;
+}
+
+html:not(.dark) {
+  --cp-bg: #f3f4f6;
+  --cp-surface: #ffffff;
+  --cp-border: #e5e7eb;
+  --cp-green: #166534; /* darker green readable on white */
+}
+
+/* Light mode text — Tailwind's hardcoded gray-* classes need overrides       */
+/* because they don't know about our dark/light context.                      */
+html:not(.dark) body           { color: #111827; }
+html:not(.dark) .text-gray-200 { color: #374151; }
+html:not(.dark) .text-gray-400 { color: #4b5563; }
+html:not(.dark) .text-gray-500 { color: #6b7280; }
+html:not(.dark) .text-gray-600 { color: #6b7280; }
+html:not(.dark) input,
+html:not(.dark) select,
+html:not(.dark) textarea       { color: #111827; }
+
 /* ── Scrollbar ───────────────────────────────────────── */
 ::-webkit-scrollbar              { width: 6px; }
-::-webkit-scrollbar-track        { background: #0a0a0f; }
+::-webkit-scrollbar-track        { background: var(--cp-bg); }
 ::-webkit-scrollbar-thumb        { background: #3a8d34; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover  { background: #89f881; }

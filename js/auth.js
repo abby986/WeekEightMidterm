@@ -7,7 +7,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  updateProfile
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 import {
   doc,
@@ -21,6 +22,9 @@ import {
 // Both must succeed — if createUserWithEmailAndPassword throws, setDoc never runs.
 export async function registerUser(email, password, displayName) {
   const { user } = await createUserWithEmailAndPassword(auth, email, password);
+  // Set displayName on the Auth user object so user.displayName is available
+  // on every page without needing an extra Firestore read.
+  await updateProfile(user, { displayName });
   await setDoc(doc(db, 'users', user.uid), {
     displayName,
     status: '',
@@ -36,6 +40,12 @@ export async function loginUser(email, password) {
 
 export async function logoutUser() {
   await signOut(auth);
+}
+
+// Keeps Firebase Auth displayName in sync with Firestore when a user edits
+// their profile. Called from profile.html alongside updateUserProfile().
+export async function updateDisplayName(user, displayName) {
+  await updateProfile(user, { displayName });
 }
 
 // ── Auth guards ───────────────────────────────────────────────────────────────
@@ -85,13 +95,13 @@ export function requireAuth(onUser) {
 export function friendlyError(code) {
   const map = {
     'auth/email-already-in-use': 'An account with this email already exists.',
-    'auth/wrong-password':        'Incorrect password. Please try again.',
-    'auth/user-not-found':        'No account found with this email.',
-    'auth/invalid-email':         'Please enter a valid email address.',
-    'auth/missing-email':         'Please enter your email.',
-    'auth/weak-password':         'Password must be at least 6 characters.',
-    'auth/missing-password':      'Please enter your password.',
-    'auth/invalid-credential':    'Invalid email or password. Please try again.',
+    'auth/wrong-password': 'Incorrect password. Please try again.',
+    'auth/user-not-found': 'No account found with this email.',
+    'auth/invalid-email': 'Please enter a valid email address.',
+    'auth/missing-email': 'Please enter your email.',
+    'auth/weak-password': 'Password must be at least 6 characters.',
+    'auth/missing-password': 'Please enter your password.',
+    'auth/invalid-credential': 'Invalid email or password. Please try again.',
   };
   return map[code] || 'Something went wrong. Please try again.';
 }

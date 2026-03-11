@@ -8,18 +8,18 @@ export function filterAndSort(games, { query = '', genre = '', platform = '', so
   const q = query.toLowerCase();
 
   const result = games.filter(game => {
-    const matchesQuery    = game.title.toLowerCase().includes(q);
-    const matchesGenre    = !genre    || game.genre === genre;
+    const matchesQuery = game.title.toLowerCase().includes(q);
+    const matchesGenre = !genre || game.genre === genre;
     const matchesPlatform = !platform || game.platform.toLowerCase().includes(platform.toLowerCase());
     return matchesQuery && matchesGenre && matchesPlatform;
   });
 
   result.sort((a, b) => {
     switch (sort) {
-      case 'za':     return b.title.localeCompare(a.title);
+      case 'za': return b.title.localeCompare(a.title);
       case 'newest': return b.releaseYear - a.releaseYear;
       case 'rating': return (b.avgRating || 0) - (a.avgRating || 0);
-      default:       return a.title.localeCompare(b.title); // 'az'
+      default: return a.title.localeCompare(b.title); // 'az'
     }
   });
 

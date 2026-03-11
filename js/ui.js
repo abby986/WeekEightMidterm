@@ -27,6 +27,33 @@ export function renderAvatar(displayName, size = 40) {
   return div;
 }
 
+// Populates the #nav-avatar element with a small initials avatar.
+export function initNavAvatar(displayName) {
+  const container = document.getElementById('nav-avatar');
+  if (!container) return;
+  container.appendChild(renderAvatar(displayName || '?', 36));
+}
+
+// Shows a brief toast notification at the bottom of the screen.
+// type: 'success' (green) | 'error' (red)
+export function showToast(message, type = 'success') {
+  const toast = document.createElement('div');
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    padding: 10px 20px; border-radius: 8px; font-size: 0.875rem; font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 9999;
+    transition: opacity 0.3s ease;
+    background: ${type === 'success' ? '#3a8d34' : '#dc2626'}; color: white;
+    white-space: nowrap;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
 // ── Game Cards ─────────────────────────────────────────────────────────────
 
 // Builds and returns a game card <a> element.

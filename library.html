@@ -12,11 +12,11 @@
       theme: {
         extend: {
           colors: {
-            'cp-bg':          '#0a0a0f',
-            'cp-surface':     '#111118',
-            'cp-border':      '#1e1e2e',
-            'cp-green':       '#89f881',
-            'cp-green-dark':  '#3a8d34',
+            'cp-bg': 'var(--cp-bg)',
+            'cp-surface': 'var(--cp-surface)',
+            'cp-border': 'var(--cp-border)',
+            'cp-green': 'var(--cp-green)',
+            'cp-green-dark': '#3a8d34',
             'cp-green-hover': '#1e551a',
           }
         }
@@ -24,23 +24,29 @@
     }
   </script>
   <link rel="stylesheet" href="css/custom.css" />
+  <script>
+    if (localStorage.getItem('cp-theme') !== 'light') document.documentElement.classList.add('dark');
+  </script>
 </head>
 
 <body class="bg-cp-bg text-gray-200 min-h-screen flex flex-col font-sans">
 
   <!-- Navbar -->
-  <nav class="w-full px-8 py-4 border-b border-cp-border flex items-center justify-between">
-    <a href="browse.html" class="text-xl font-bold tracking-wide text-cp-green hover:opacity-80 transition-opacity">CheckPoint</a>
+  <nav class="w-full px-8 py-4 border-b border-cp-border flex items-center gap-4 md:gap-6">
+    <a href="browse.html"
+      class="text-xl font-bold tracking-wide text-cp-green hover:opacity-80 transition-opacity">CheckPoint</a>
     <div class="hidden md:flex items-center gap-5 text-sm">
       <a href="browse.html" class="hover:text-cp-green transition-colors">Browse</a>
       <a href="favorites.html" class="hover:text-cp-green transition-colors">Favorites</a>
       <a href="library.html" class="text-cp-green font-medium">Library</a>
       <a href="profile.html" class="hover:text-cp-green transition-colors">Profile</a>
     </div>
-    <div class="flex items-center gap-3">
-      <button type="button" id="dark-mode-toggle" class="cursor-pointer hover:text-cp-green transition-colors" aria-label="Toggle dark mode">🌙</button>
+    <div class="flex items-center gap-3 ml-auto">
+      <button type="button" id="dark-mode-toggle" class="cursor-pointer hover:text-cp-green transition-colors"
+        aria-label="Toggle dark mode">🌙</button>
       <div id="nav-avatar"></div>
-      <button type="button" id="logout-btn" class="cursor-pointer text-sm bg-cp-green-dark hover:bg-cp-green-hover text-white px-3 py-1.5 rounded-lg transition-colors">Logout</button>
+      <button type="button" id="logout-btn"
+        class="cursor-pointer text-sm bg-cp-green-dark hover:bg-cp-green-hover text-white px-3 py-1.5 rounded-lg transition-colors">Logout</button>
     </div>
   </nav>
 
@@ -50,15 +56,22 @@
 
     <!-- Tabs -->
     <div class="flex gap-2 mb-6">
-      <button type="button" class="cursor-pointer tab-btn px-4 py-1.5 rounded-lg text-sm bg-cp-green-dark text-white" data-tab="all">All</button>
-      <button type="button" class="cursor-pointer tab-btn px-4 py-1.5 rounded-lg text-sm border border-cp-border text-gray-400 hover:text-cp-green hover:border-cp-green transition-colors" data-tab="playing">Playing</button>
-      <button type="button" class="cursor-pointer tab-btn px-4 py-1.5 rounded-lg text-sm border border-cp-border text-gray-400 hover:text-cp-green hover:border-cp-green transition-colors" data-tab="played">Played</button>
-      <button type="button" class="cursor-pointer tab-btn px-4 py-1.5 rounded-lg text-sm border border-cp-border text-gray-400 hover:text-cp-green hover:border-cp-green transition-colors" data-tab="not-started">Not Started</button>
+      <button type="button" class="cursor-pointer tab-btn px-4 py-1.5 rounded-lg text-sm bg-cp-green-dark text-white"
+        data-tab="all">All</button>
+      <button type="button"
+        class="cursor-pointer tab-btn px-4 py-1.5 rounded-lg text-sm border border-cp-border text-gray-400 hover:text-cp-green hover:border-cp-green transition-colors"
+        data-tab="playing">Playing</button>
+      <button type="button"
+        class="cursor-pointer tab-btn px-4 py-1.5 rounded-lg text-sm border border-cp-border text-gray-400 hover:text-cp-green hover:border-cp-green transition-colors"
+        data-tab="played">Played</button>
+      <button type="button"
+        class="cursor-pointer tab-btn px-4 py-1.5 rounded-lg text-sm border border-cp-border text-gray-400 hover:text-cp-green hover:border-cp-green transition-colors"
+        data-tab="not_started">Not Started</button>
     </div>
 
     <!-- Library Grid -->
     <div id="library-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-      <!-- Cards rendered by library.js -->
+      <!-- Cards rendered below -->
     </div>
   </main>
 
@@ -69,8 +82,88 @@
 
   <script type="module">
     import { requireAuth } from './js/auth.js';
-    requireAuth(user => {
-      // library.js initialization will go here in Step 7
+    import { getLibrary, getUserProfile } from './js/db.js';
+    import { initNavAvatar } from './js/ui.js';
+    import { initDarkMode } from './js/darkmode.js';
+
+    initDarkMode();
+
+    const STATUS_LABEL = { not_started: 'Not Started', playing: 'Playing', played: 'Played' };
+    // Badge colors — defined as inline styles to avoid Tailwind purge issues on dynamic classes
+    const darkMode = () => document.documentElement.classList.contains('dark');
+    const STATUS_STYLE = {
+      not_started: () => darkMode() ? 'background:#374151; color:#d1d5db;' : 'background:#e5e7eb; color:#374151;',
+      playing:     () => darkMode() ? 'background:#1e3a5f; color:#93c5fd;' : 'background:#dbeafe; color:#1e40af;',
+      played:      () => darkMode() ? 'background:#14532d; color:#86efac;' : 'background:#dcfce7; color:#166534;',
+    };
+
+    requireAuth(async user => {
+      getUserProfile(user.uid).then(p => initNavAvatar(p?.displayName || user.displayName || 'User'));
+
+      const grid = document.getElementById('library-grid');
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      let activeTab = 'all';
+
+      // Show spinner while loading
+      grid.innerHTML = `
+        <div class="col-span-full flex justify-center py-12">
+          <div class="w-8 h-8 border-2 border-cp-green border-t-transparent rounded-full animate-spin"></div>
+        </div>`;
+
+      let library = [];
+      try {
+        library = await getLibrary(user.uid);
+      } catch (err) {
+        console.error('Failed to load library:', err);
+        grid.innerHTML = '<p class="col-span-full text-center text-red-400 py-12">Failed to load library. Please try refreshing.</p>';
+        return;
+      }
+
+      function renderGrid() {
+        const filtered = activeTab === 'all'
+          ? library
+          : library.filter(g => g.status === activeTab);
+
+        grid.innerHTML = '';
+        if (filtered.length === 0) {
+          grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-12">No games in this category.</p>';
+          return;
+        }
+
+        filtered.forEach(item => {
+          const card = document.createElement('a');
+          card.href = `game-detail.html?id=${item.gameId}`;
+          card.className = 'group block relative bg-cp-surface border border-cp-border rounded-xl overflow-hidden hover:border-cp-green transition-colors';
+          card.innerHTML = `
+            <div class="h-28 bg-cp-bg overflow-hidden">
+              <img src="${item.coverImage}" alt="${item.title.replace(/"/g, '&quot;')}"
+                class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                onerror="this.style.display='none'" />
+            </div>
+            <div class="p-3">
+              <p class="font-semibold text-sm leading-tight line-clamp-2 mb-2">${item.title}</p>
+              <span class="text-xs px-2 py-0.5 rounded-full" style="${(STATUS_STYLE[item.status] || STATUS_STYLE.not_started)()}">
+                ${STATUS_LABEL[item.status] || item.status}
+              </span>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+
+      // Tab switching — filters client-side, no extra Firestore reads
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeTab = btn.dataset.tab;
+          tabBtns.forEach(b => {
+            b.className = 'cursor-pointer tab-btn px-4 py-1.5 rounded-lg text-sm border border-cp-border text-gray-400 hover:text-cp-green hover:border-cp-green transition-colors';
+          });
+          btn.className = 'cursor-pointer tab-btn px-4 py-1.5 rounded-lg text-sm bg-cp-green-dark text-white';
+          renderGrid();
+        });
+      });
+
+      renderGrid();
     });
   </script>
 

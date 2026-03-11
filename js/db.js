@@ -89,9 +89,21 @@ export async function getUserProfile(userId) {
 }
 
 // Updates only the supplied fields on the user's Firestore profile document.
-// Using updateDoc (not setDoc) so unrelated fields like createdAt are untouched.
+// Using setDoc with merge:true so unrelated fields like createdAt are untouched.
 export async function updateUserProfile(userId, data) {
   await setDoc(doc(db, 'users', userId), data, { merge: true });
+}
+
+// Returns all documents in the user's favorites subcollection.
+export async function getFavorites(userId) {
+  const snapshot = await getDocs(collection(db, 'users', userId, 'favorites'));
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// Returns all documents in the user's library subcollection.
+export async function getLibrary(userId) {
+  const snapshot = await getDocs(collection(db, 'users', userId, 'library'));
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
 // Returns the number of games in the user's favorites subcollection.

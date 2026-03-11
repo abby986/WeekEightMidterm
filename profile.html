@@ -12,10 +12,10 @@
       theme: {
         extend: {
           colors: {
-            'cp-bg': '#0a0a0f',
-            'cp-surface': '#111118',
-            'cp-border': '#1e1e2e',
-            'cp-green': '#89f881',
+            'cp-bg': 'var(--cp-bg)',
+            'cp-surface': 'var(--cp-surface)',
+            'cp-border': 'var(--cp-border)',
+            'cp-green': 'var(--cp-green)',
             'cp-green-dark': '#3a8d34',
             'cp-green-hover': '#1e551a',
           }
@@ -24,12 +24,15 @@
     }
   </script>
   <link rel="stylesheet" href="css/custom.css" />
+  <script>
+    if (localStorage.getItem('cp-theme') !== 'light') document.documentElement.classList.add('dark');
+  </script>
 </head>
 
 <body class="bg-cp-bg text-gray-200 min-h-screen flex flex-col font-sans">
 
   <!-- Navbar -->
-  <nav class="w-full px-8 py-4 border-b border-cp-border flex items-center justify-between">
+  <nav class="w-full px-8 py-4 border-b border-cp-border flex items-center gap-4 md:gap-6">
     <a href="browse.html"
       class="text-xl font-bold tracking-wide text-cp-green hover:opacity-80 transition-opacity">CheckPoint</a>
     <div class="hidden md:flex items-center gap-5 text-sm">
@@ -38,7 +41,7 @@
       <a href="library.html" class="hover:text-cp-green transition-colors">Library</a>
       <a href="profile.html" class="text-cp-green font-medium">Profile</a>
     </div>
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 ml-auto">
       <button type="button" id="dark-mode-toggle" class="cursor-pointer hover:text-cp-green transition-colors"
         aria-label="Toggle dark mode">🌙</button>
       <div id="nav-avatar"></div>
@@ -60,12 +63,15 @@
   </footer>
 
   <script type="module">
-    import { requireAuth } from './js/auth.js';
+    import { requireAuth, updateDisplayName } from './js/auth.js';
     import {
       getUserProfile, updateUserProfile,
       getFavoritesCount, getLibraryCount
     } from './js/db.js';
-    import { renderAvatar } from './js/ui.js';
+    import { renderAvatar, initNavAvatar, showToast } from './js/ui.js';
+    import { initDarkMode } from './js/darkmode.js';
+
+    initDarkMode();
 
     requireAuth(async user => {
       const main = document.querySelector('main');
@@ -84,6 +90,7 @@
       }
 
       const displayName = profile?.displayName || 'Anonymous';
+      initNavAvatar(displayName);
       const status = profile?.status || '';
       const memberSince = profile?.createdAt?.toDate
         ? profile.createdAt.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
@@ -120,11 +127,11 @@
 
           <label class="block text-sm text-gray-400 mb-1">Display Name</label>
           <input id="edit-name" type="text" maxlength="40"
-            class="w-full bg-gray-800 border border-gray-600 text-gray-200 placeholder-gray-500 px-4 py-2.5 rounded-lg text-sm outline-none focus:border-cp-green focus:ring-1 focus:ring-cp-green transition-colors mb-4" />
+            class="w-full bg-cp-bg border border-cp-border text-gray-200 placeholder-gray-500 px-4 py-2.5 rounded-lg text-sm outline-none focus:border-cp-green focus:ring-1 focus:ring-cp-green transition-colors mb-4" />
 
           <label class="block text-sm text-gray-400 mb-1">Bio</label>
           <input id="edit-status" type="text" maxlength="120" placeholder="A short bio (optional)"
-            class="w-full bg-gray-800 border border-gray-600 text-gray-200 placeholder-gray-500 px-4 py-2.5 rounded-lg text-sm outline-none focus:border-cp-green focus:ring-1 focus:ring-cp-green transition-colors mb-4" />
+            class="w-full bg-cp-bg border border-cp-border text-gray-200 placeholder-gray-500 px-4 py-2.5 rounded-lg text-sm outline-none focus:border-cp-green focus:ring-1 focus:ring-cp-green transition-colors mb-4" />
 
           <button type="button" id="save-profile"
             class="cursor-pointer bg-cp-green-dark hover:bg-cp-green-hover text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
@@ -155,17 +162,26 @@
         saveBtn.disabled = true;
         saveMsg.textContent = '';
         try {
-          await updateUserProfile(user.uid, { displayName: newName, status: newStatus });
+          // Update both Firestore and Firebase Auth so every page stays in sync
+          await Promise.all([
+            updateUserProfile(user.uid, { displayName: newName, status: newStatus }),
+            updateDisplayName(user, newName)
+          ]);
+          // Refresh the big profile avatar
           document.getElementById('profile-name').textContent = newName;
           document.getElementById('profile-status').textContent = newStatus;
           document.getElementById('profile-avatar').innerHTML = '';
           document.getElementById('profile-avatar').appendChild(renderAvatar(newName, 64));
-          saveMsg.className = 'text-cp-green text-sm mt-2 min-h-[1.25rem]';
-          saveMsg.textContent = 'Profile updated.';
+          // Refresh the navbar avatar to match immediately
+          const navAvatarEl = document.getElementById('nav-avatar');
+          if (navAvatarEl) {
+            navAvatarEl.innerHTML = '';
+            navAvatarEl.appendChild(renderAvatar(newName, 36));
+          }
+          showToast('Profile updated!');
         } catch (err) {
           console.error('Failed to update profile:', err);
-          saveMsg.className = 'text-red-400 text-sm mt-2 min-h-[1.25rem]';
-          saveMsg.textContent = 'Failed to save. Please try again.';
+          showToast('Failed to save. Please try again.', 'error');
         } finally {
           saveBtn.disabled = false;
         }
