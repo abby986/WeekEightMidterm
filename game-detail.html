@@ -32,23 +32,44 @@
 <body class="bg-cp-bg text-gray-200 min-h-screen flex flex-col font-sans">
 
   <!-- Navbar -->
-  <nav class="w-full px-8 py-4 border-b border-cp-border flex items-center gap-4 md:gap-6">
-    <a href="browse.html"
-      class="text-xl font-bold tracking-wide text-cp-green hover:opacity-80 transition-opacity">CheckPoint</a>
-    <div class="hidden md:flex items-center gap-5 text-sm">
+  <nav class="w-full border-b border-cp-border">
+    <div class="px-8 py-4 flex items-center gap-4 md:gap-6">
+      <a href="browse.html"
+        class="text-xl font-bold tracking-wide text-cp-green hover:opacity-80 transition-opacity">CheckPoint</a>
+      <div class="hidden md:flex items-center gap-5 text-sm">
+        <a href="browse.html" class="hover:text-cp-green transition-colors">Browse</a>
+        <a href="favorites.html" class="hover:text-cp-green transition-colors">Favorites</a>
+        <a href="library.html" class="hover:text-cp-green transition-colors">Library</a>
+        <a href="profile.html" class="hover:text-cp-green transition-colors">Profile</a>
+      </div>
+      <div class="flex items-center gap-3 ml-auto">
+        <button type="button" id="dark-mode-toggle" class="cursor-pointer hover:text-cp-green transition-colors"
+          aria-label="Toggle dark mode">🌙</button>
+        <div id="nav-avatar"></div>
+        <button type="button" id="logout-btn"
+          class="cursor-pointer text-sm bg-cp-green-dark hover:bg-cp-green-hover text-white px-3 py-1.5 rounded-lg transition-colors">Logout</button>
+        <button type="button" id="hamburger-btn" class="md:hidden cursor-pointer hover:text-cp-green transition-colors" aria-label="Toggle menu">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="hidden border-t border-cp-border bg-cp-surface px-8 py-4 flex-col gap-4 text-sm">
       <a href="browse.html" class="hover:text-cp-green transition-colors">Browse</a>
       <a href="favorites.html" class="hover:text-cp-green transition-colors">Favorites</a>
       <a href="library.html" class="hover:text-cp-green transition-colors">Library</a>
       <a href="profile.html" class="hover:text-cp-green transition-colors">Profile</a>
     </div>
-    <div class="flex items-center gap-3 ml-auto">
-      <button type="button" id="dark-mode-toggle" class="cursor-pointer hover:text-cp-green transition-colors"
-        aria-label="Toggle dark mode">🌙</button>
-      <div id="nav-avatar"></div>
-      <button type="button" id="logout-btn"
-        class="cursor-pointer text-sm bg-cp-green-dark hover:bg-cp-green-hover text-white px-3 py-1.5 rounded-lg transition-colors">Logout</button>
-    </div>
   </nav>
+  <script>
+    document.getElementById('hamburger-btn').addEventListener('click', () => {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('hidden');
+      menu.classList.toggle('flex');
+    });
+  </script>
 
   <!-- Main — content injected by script below -->
   <main class="flex-1 px-8 py-8 max-w-4xl mx-auto w-full">
