@@ -1,0 +1,12 @@
+Transcript Highlights
+
+1. Build Plan (Session 1,  very beginning)
+   I gave Claude my idea prompt and had it help me build a 10 step build plan with debugging for each step, and to save it to the dev-notes mcp we created earlier in the semester so it could access the information over the course of multiple sessions. I went through each step it generated and made suggestions to change aspects I wasn't sure about, like finding a way to display avatars and insert data without an API. This way we built a solid plan with my input.
+2. API Situation (Session 1, early (step 3))
+   I wanted to push the files to GitHub and asked Claude about hiding the API key. I was nervous about letting claude push to GitHub because I've had problems with it before. I uploaded the files by drag and drop, which I learned has a problem with the .gitignore file. Claude explained to me the issue and explained how Firebase API keys are safe to be public since the security is in the rules. From there Claude helped me push everything properly. 
+3. Seed File (Session 2, Very beginning)
+   I did not want to use an API to populate data for my video game tracker site, so I was going to manually enter data. It turned out to be a lot of data, so I asked Claude if there was a faster way to enter the data without using an API. Claude suggested using a seed file where it wrote a seed script to write the game data to Firestore automatically. All I had to do was open the file, click the button, and it filled in the information for me just like that.
+4. Computer Crash Transcript Recovery (Session 3, very beginning)
+   In the middle of working on the project, my computer crashed and restarted itself. I did not have access to my transcript, which is vital for the project. I asked Claude to install and use the claude-code-transcript tool to export all my sessions from the planning stage forward. I asked it to compile all the transcripts into one big text file so I had everything in one place.
+5. Avatar Pivot (Session 1, early (step 2))
+   I originally wanted to include profile photo uploads in the project, but it turned out I needed the upgraded version of Firebase to do so. I did not want to pay for the service for just one project, so Claude suggested two options. It suggested to pivot and do profile avatars with the user's initials, or to switch from Firebase to a different service. I chose to pivot and Claude updated the build plan and we kept moving forward. 
