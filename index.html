@@ -138,11 +138,16 @@
       clearError();
       if (!email) { showError('Please enter your email.'); return; }
       if (!password) { showError('Please enter your password.'); return; }
+      const btn = document.getElementById('login-submit');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="btn-spinner"></span>Signing in…';
       try {
         await loginUser(email, password);
         window.location.href = 'browse.html';
       } catch (err) {
         showError(friendlyError(err.code));
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
       }
     });
 
@@ -153,11 +158,16 @@
       const password = document.getElementById('reg-password').value;
       clearError();
       if (!name) { showError('Please enter a display name.'); return; }
+      const btn = document.getElementById('register-submit');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="btn-spinner"></span>Creating account…';
       try {
         await registerUser(email, password, name);
         window.location.href = 'browse.html';
       } catch (err) {
         showError(friendlyError(err.code));
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
       }
     });
   </script>
